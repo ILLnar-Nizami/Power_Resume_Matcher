@@ -627,6 +627,7 @@
       "selectedProvider": "SELECCIONADO: {provider}",
       "modelLabel": "Modelo",
       "defaultModel": "PREDETERMINADO: {model}",
+      "apiKeyOptionalForCerebras": "(Opcional para Cerebras)",
       "apiKeyLabel": "Clave API",
       "apiKeyOptionalForOllama": "(Opcional para Ollama)",
       "apiKeyPlaceholder": "sk-...",

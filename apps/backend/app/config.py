@@ -4,8 +4,11 @@ import json
 from pathlib import Path
 from typing import Any, Literal
 
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Load environment variables from .env file
+load_dotenv()
 
 # Path to config file for API key persistence
 CONFIG_FILE_PATH = Path(__file__).parent.parent / "data" / "config.json"
@@ -91,9 +94,14 @@ def _get_llm_api_key_with_fallback() -> str:
     if env_key:
         return env_key
 
+    # Check for provider-specific environment variable
+    provider = os.environ.get("LLM_PROVIDER", "openai")
+    provider_env_key = os.environ.get(f"{provider.upper()}_API_KEY", "")
+    if provider_env_key:
+        return provider_env_key
+
     # Fallback to config file based on provider
     config_keys = get_api_keys_from_config()
-    provider = os.environ.get("LLM_PROVIDER", "openai")
 
     # Map provider to config key
     provider_map = {
@@ -103,6 +111,7 @@ def _get_llm_api_key_with_fallback() -> str:
         "openrouter": "openrouter",
         "deepseek": "deepseek",
         "ollama": "ollama",
+        "cerebras": "cerebras",
     }
 
     config_provider = provider_map.get(provider, provider)
@@ -120,21 +129,21 @@ class Settings(BaseSettings):
 
     # LLM Configuration
     llm_provider: Literal[
-        "openai", "anthropic", "openrouter", "gemini", "deepseek", "ollama"
-    ] = "openai"
-    llm_model: str = "gpt-5-nano-2025-08-07"
+        "openai", "anthropic", "openrouter", "gemini", "deepseek", "ollama", "cerebras"
+    ] = "cerebras"
+    llm_model: str = "gpt-oss-120b"
     llm_api_key: str = ""
     llm_api_base: str | None = None  # For Ollama or custom endpoints
 
     # Server Configuration
     host: str = "0.0.0.0"
-    port: int = 8000
-    frontend_base_url: str = "http://localhost:3000"
+    port: int = 8888
+    frontend_base_url: str = "http://localhost:3334"
 
     # CORS Configuration
     cors_origins: list[str] = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
+        "http://localhost:3334",
+        "http://127.0.0.1:3334",
     ]
 
     # Paths

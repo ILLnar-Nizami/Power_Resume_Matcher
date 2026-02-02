@@ -1,0 +1,17 @@
+INFO:     Will watch for changes in these directories: ['/home/illnar/Projects/Resume-Matcher/apps/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8890 (Press CTRL+C to quit)
+INFO:     Started reloader process [3164848] using StatReload
+INFO:     Started server process [3164851]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:49236 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60342 - "GET /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47200 - "GET /api/v1/config/features HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:44400 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3164851]
+INFO:     Stopping reloader process [3164848]

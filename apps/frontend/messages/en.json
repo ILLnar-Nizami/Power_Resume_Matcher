@@ -629,6 +629,7 @@
       "defaultModel": "DEFAULT: {model}",
       "apiKeyLabel": "API Key",
       "apiKeyOptionalForOllama": "(Optional for Ollama)",
+      "apiKeyOptionalForCerebras": "(Optional for Cerebras)",
       "apiKeyPlaceholder": "sk-...",
       "apiKeyNotRequiredPlaceholder": "Not required for local models",
       "leaveBlankToKeepExistingKey": "LEAVE BLANK TO KEEP EXISTING KEY",

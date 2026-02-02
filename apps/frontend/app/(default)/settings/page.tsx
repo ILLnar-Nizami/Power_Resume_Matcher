@@ -60,7 +60,7 @@ const PROVIDERS: LLMProvider[] = [
   'openrouter',
   'gemini',
   'deepseek',
-  'ollama',
+  'cerebras',
 ];
 
 const unwrapCodeBlock = (value?: string | null): string | null => {
@@ -285,8 +285,8 @@ export default function SettingsPage() {
     setProvider(newProvider);
     setModel(PROVIDER_INFO[newProvider].defaultModel);
 
-    if (newProvider === 'ollama' && !apiBase.trim()) {
-      setApiBase('http://localhost:11434');
+    if (newProvider === 'cerebras' && !apiBase.trim()) {
+      setApiBase('https://api.cerebras.ai');
     }
 
     // Clear API key input when switching providers to avoid accidental cross-provider usage.
@@ -760,7 +760,7 @@ export default function SettingsPage() {
                   {t('settings.llmConfiguration.apiKeyLabel')}{' '}
                   {!requiresApiKey && (
                     <span className="text-gray-400">
-                      {t('settings.llmConfiguration.apiKeyOptionalForOllama')}
+                      {t('settings.llmConfiguration.apiKeyOptionalForCerebras')}
                     </span>
                   )}
                 </Label>

@@ -627,6 +627,7 @@
       "selectedProvider": "已选择：{provider}",
       "modelLabel": "模型",
       "defaultModel": "默认：{model}",
+      "apiKeyOptionalForCerebras": "（Cerebras 可选）",
       "apiKeyLabel": "API 密钥",
       "apiKeyOptionalForOllama": "（Ollama 可选）",
       "apiKeyPlaceholder": "sk-...",

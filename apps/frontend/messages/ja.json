@@ -627,6 +627,7 @@
       "selectedProvider": "選択中: {provider}",
       "modelLabel": "モデル",
       "defaultModel": "既定: {model}",
+      "apiKeyOptionalForCerebras": "（Cerebras は任意）",
       "apiKeyLabel": "API キー",
       "apiKeyOptionalForOllama": "（Ollama は任意）",
       "apiKeyPlaceholder": "sk-...",
