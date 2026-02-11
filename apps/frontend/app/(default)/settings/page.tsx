@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   fetchLlmConfig,
   updateLlmConfig,
@@ -62,6 +63,11 @@ const PROVIDERS: LLMProvider[] = [
   'deepseek',
   'cerebras',
 ];
+
+const SEGMENTED_BUTTON_BASE =
+  'border border-black font-mono transition-all duration-150 ease-out shadow-[2px_2px_0px_0px_#000000] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50';
+const SEGMENTED_BUTTON_ACTIVE = 'bg-blue-700 text-white border-black hover:bg-blue-800';
+const SEGMENTED_BUTTON_INACTIVE = 'bg-white text-black hover:bg-[#E5E5E0]';
 
 const unwrapCodeBlock = (value?: string | null): string | null => {
   if (!value) return null;
@@ -720,10 +726,8 @@ export default function SettingsPage() {
                     <button
                       key={p}
                       onClick={() => handleProviderChange(p)}
-                      className={`px-3 py-2 border text-xs font-mono uppercase transition-all ${
-                        provider === p
-                          ? 'bg-blue-700 text-white border-blue-700 shadow-[2px_2px_0px_0px_#000]'
-                          : 'bg-white text-black border-black hover:bg-gray-100'
+                      className={`px-3 py-2 text-xs uppercase ${SEGMENTED_BUTTON_BASE} ${
+                        provider === p ? SEGMENTED_BUTTON_ACTIVE : SEGMENTED_BUTTON_INACTIVE
                       }`}
                     >
                       {PROVIDER_INFO[p].name.split(' ')[0]}
@@ -972,11 +976,7 @@ export default function SettingsPage() {
                       key={`ui-${lang}`}
                       onClick={() => setUiLanguage(lang as Locale)}
                       disabled={languageLoading}
-                      className={`px-4 py-3 border text-sm font-mono transition-all ${
-                        uiLanguage === lang
-                          ? 'bg-blue-700 text-white border-blue-700 shadow-[2px_2px_0px_0px_#000]'
-                          : 'bg-white text-black border-black hover:bg-gray-100'
-                      } ${languageLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`px-4 py-3 text-sm ${SEGMENTED_BUTTON_BASE} ${uiLanguage === lang ? SEGMENTED_BUTTON_ACTIVE : SEGMENTED_BUTTON_INACTIVE}`}
                     >
                       {languageNames[lang]}
                     </button>
@@ -1003,11 +1003,7 @@ export default function SettingsPage() {
                       key={`content-${lang}`}
                       onClick={() => setContentLanguage(lang as SupportedLanguage)}
                       disabled={languageLoading}
-                      className={`px-4 py-3 border text-sm font-mono transition-all ${
-                        contentLanguage === lang
-                          ? 'bg-blue-700 text-white border-blue-700 shadow-[2px_2px_0px_0px_#000]'
-                          : 'bg-white text-black border-black hover:bg-gray-100'
-                      } ${languageLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`px-4 py-3 text-sm ${SEGMENTED_BUTTON_BASE} ${contentLanguage === lang ? SEGMENTED_BUTTON_ACTIVE : SEGMENTED_BUTTON_INACTIVE}`}
                     >
                       {languageNames[lang]}
                     </button>
@@ -1071,7 +1067,13 @@ export default function SettingsPage() {
         {/* Footer */}
         <div className="bg-[#E5E5E0] p-4 border-t border-black flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Resume Matcher" className="w-5 h-5" />
+            <Image
+              src="/logo.svg"
+              alt="Resume Matcher"
+              width={20}
+              height={20}
+              className="w-5 h-5"
+            />
             <span className="font-mono text-xs text-gray-500">
               {getVersionString().toUpperCase()}
             </span>
