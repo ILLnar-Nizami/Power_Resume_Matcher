@@ -122,7 +122,7 @@ USER appuser
 RUN python -m playwright install chromium
 
 # Expose ports
-EXPOSE 3000 8000
+EXPOSE 3333 8888
 
 # Volume for persistent data
 VOLUME ["/app/backend/data"]
