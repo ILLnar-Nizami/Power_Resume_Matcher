@@ -1,6 +1,7 @@
 """Application configuration using pydantic-settings."""
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Literal
 
@@ -173,7 +174,7 @@ class Settings(BaseSettings):
     frontend_base_url: str = "http://localhost:3333"
 
     # Database Configuration
-    database_url: str = ""
+    database_url: str = os.getenv("DATABASE_URL") or ""
     redis_url: str = "redis://localhost:6379/0"
 
     # Paths
