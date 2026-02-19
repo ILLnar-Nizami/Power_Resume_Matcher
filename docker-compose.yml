@@ -25,7 +25,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - LLM_PROVIDER=${LLM_PROVIDER:-cerebras}
       - LLM_MODEL=${LLM_MODEL:-gpt-oss-120b}
-      - LLM_API_KEY=${LLM_API_KEY:-csk-rhxf54ywdhwjfek9kmf44jcck6nhwwexevc2ne4tfht5w4c3}
+      - LLM_API_KEY=${LLM_API_KEY}
       - LLM_API_BASE=${LLM_API_BASE:-https://api.cerebras.ai/v1}
     restart: unless-stopped
     healthcheck:
