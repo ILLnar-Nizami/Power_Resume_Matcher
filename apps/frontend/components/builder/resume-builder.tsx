@@ -417,6 +417,39 @@ const ResumeBuilderContent = () => {
     }
   };
 
+  const generateFilename = (prefix: string, resumeTitle?: string | null) => {
+    const name = resumeData?.personalInfo?.name;
+    let namePart = '';
+    if (name) {
+      const parts = name.split(' ');
+      if (parts.length >= 2) {
+        namePart = `${parts[0][0]}.${parts[parts.length - 1]}`;
+      } else if (parts.length === 1) {
+        namePart = parts[0];
+      }
+    }
+    
+    let titlePart = '';
+    if (resumeTitle) {
+      if (resumeTitle.includes(' @ ')) {
+        const [, company] = resumeTitle.split(' @ ');
+        titlePart = company.trim();
+      } else if (resumeTitle.includes('@')) {
+        const [, company] = resumeTitle.split('@');
+        titlePart = company.trim();
+      }
+    }
+    
+    const date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.');
+    
+    const parts = [prefix];
+    if (namePart) parts.push(namePart);
+    if (titlePart) parts.push(titlePart.replace(/[^a-zA-Z0-9]/g, ''));
+    parts.push(date);
+    
+    return parts.join('_') + '.pdf';
+  };
+
   const handleReset = () => {
     setResumeData(lastSavedData);
     setHasUnsavedChanges(false);
@@ -428,10 +461,11 @@ const ResumeBuilderContent = () => {
       showNotification(t('builder.alerts.downloadNotAvailable'), 'warning');
       return;
     }
+
     try {
       setIsDownloading(true);
-      const blob = await downloadResumePdf(resumeId, templateSettings, uiLanguage);
-      downloadBlobAsFile(blob, `resume_${resumeId}.pdf`);
+      const { blob, filename } = await downloadResumePdf(resumeId, templateSettings, uiLanguage);
+      downloadBlobAsFile(blob, filename);
       showNotification(t('builder.alerts.downloadSuccess'), 'success');
     } catch (error) {
       console.error('Failed to download resume:', error);
@@ -479,8 +513,8 @@ const ResumeBuilderContent = () => {
     }
     try {
       setIsDownloading(true);
-      const blob = await downloadCoverLetterPdf(resumeId, templateSettings.pageSize, uiLanguage);
-      downloadBlobAsFile(blob, `cover_letter_${resumeId}.pdf`);
+      const { blob, filename } = await downloadCoverLetterPdf(resumeId, templateSettings.pageSize, uiLanguage);
+      downloadBlobAsFile(blob, filename);
     } catch (error) {
       console.error('Failed to download cover letter:', error);
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
