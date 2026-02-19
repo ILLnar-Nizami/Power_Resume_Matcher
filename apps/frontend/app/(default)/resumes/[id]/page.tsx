@@ -162,10 +162,43 @@ export default function ResumeViewerPage() {
     reloadResumeData();
   };
 
+  const generateFilename = (prefix: string, resumeTitle?: string | null) => {
+    const name = resumeData?.personalInfo?.name;
+    let namePart = '';
+    if (name) {
+      const parts = name.split(' ');
+      if (parts.length >= 2) {
+        namePart = `${parts[0][0]}.${parts[parts.length - 1]}`;
+      } else if (parts.length === 1) {
+        namePart = parts[0];
+      }
+    }
+    
+    let titlePart = '';
+    if (resumeTitle) {
+      if (resumeTitle.includes(' @ ')) {
+        const [, company] = resumeTitle.split(' @ ');
+        titlePart = company.trim();
+      } else if (resumeTitle.includes('@')) {
+        const [, company] = resumeTitle.split('@');
+        titlePart = company.trim();
+      }
+    }
+    
+      const date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.');
+    
+    const parts = [prefix];
+    if (namePart) parts.push(namePart);
+    if (titlePart) parts.push(titlePart.replace(/[^a-zA-Z0-9]/g, ''));
+    parts.push(date);
+    
+    return parts.join('_') + '.pdf';
+  };
+
   const handleDownload = async () => {
     try {
-      const blob = await downloadResumePdf(resumeId, undefined, uiLanguage);
-      downloadBlobAsFile(blob, `resume_${resumeId}.pdf`);
+      const { blob, filename } = await downloadResumePdf(resumeId, undefined, uiLanguage);
+      downloadBlobAsFile(blob, filename);
       setShowDownloadSuccessDialog(true);
     } catch (err) {
       console.error('Failed to download resume:', err);

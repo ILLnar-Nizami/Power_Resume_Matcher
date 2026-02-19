@@ -174,6 +174,9 @@ class Settings(BaseSettings):
     frontend_base_url: str = "http://localhost:3333"
 
     # Database Configuration
+    database_url: str = (
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/resume_matcher"
+    )
     database_url: str = os.getenv("DATABASE_URL") or ""
     redis_url: str = "redis://localhost:6379/0"
 
