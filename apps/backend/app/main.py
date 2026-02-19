@@ -84,7 +84,7 @@ if cors_env:
 else:
     cors_list = default_origins
 
-print(f"[DEBUG] CORS origins: {cors_list}")
+logger.debug("CORS origins: %s", cors_list)
 
 app.add_middleware(
     CORSMiddleware,
