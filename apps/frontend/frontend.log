@@ -1,0 +1,64 @@
+
+> resume-matcher-ui@1.0.0 dev
+> next dev --turbopack --port 3334
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /home/illnar/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /home/illnar/Projects/Resume-Matcher/apps/frontend/package-lock.json
+
+▲ Next.js 16.1.5 (Turbopack)
+- Local:         http://localhost:3334
+- Network:       http://192.168.2.51:3334
+- Experiments (use with caution):
+  ✓ turbopackUseSystemTlsCerts
+
+✓ Starting...
+✓ Ready in 1971ms
+○ Compiling / ...
+ GET / 200 in 7.8s (compile: 7.2s, render: 534ms)
+ GET /dashboard 200 in 2.2s (compile: 2.1s, render: 161ms)
+ GET /settings 200 in 1593ms (compile: 1417ms, render: 176ms)
+ GET / 200 in 449ms (compile: 114ms, render: 335ms)
+✓ Compiled in 848ms
+⚠ Fast Refresh had to perform a full reload when ./Projects/Resume-Matcher/apps/frontend/lib/api/config.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /settings 200 in 1929ms (compile: 963ms, render: 966ms)
+ HEAD / 200 in 860ms (compile: 459ms, render: 401ms)
+ GET / 200 in 371ms (compile: 132ms, render: 239ms)
+ GET /settings 200 in 508ms (compile: 195ms, render: 314ms)
+⚠ Fast Refresh had to perform a full reload when ./Projects/Resume-Matcher/apps/frontend/lib/api/config.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 288ms
+ GET /settings 200 in 892ms (compile: 346ms, render: 546ms)
+ HEAD / 200 in 684ms (compile: 317ms, render: 366ms)
+ GET /dashboard 200 in 306ms (compile: 108ms, render: 198ms)
+○ Compiling /resumes/[id] ...
+ GET /resumes/61f9f813-bbe2-4f45-9d2e-65095ce55f58 200 in 4.7s (compile: 4.6s, render: 122ms)
+ GET /tailor 200 in 886ms (compile: 766ms, render: 119ms)
+ GET /resumes/ba626227-4fa4-4093-976d-97d12796a450 200 in 367ms (compile: 224ms, render: 143ms)
+ GET /builder?id=ba626227-4fa4-4093-976d-97d12796a450 200 in 2.9s (compile: 2.7s, render: 199ms)
+ GET /dashboard 200 in 109ms (compile: 40ms, render: 69ms)
+ GET /resumes/61f9f813-bbe2-4f45-9d2e-65095ce55f58 200 in 196ms (compile: 142ms, render: 54ms)
+ GET /dashboard 200 in 43ms (compile: 9ms, render: 34ms)
+ GET /resumes/ba626227-4fa4-4093-976d-97d12796a450 200 in 185ms (compile: 124ms, render: 61ms)
+ GET /dashboard 200 in 230ms (compile: 69ms, render: 162ms)
+ GET /settings 200 in 81ms (compile: 12ms, render: 69ms)
+ GET /dashboard 200 in 57ms (compile: 9ms, render: 49ms)
+ GET /resumes/61f9f813-bbe2-4f45-9d2e-65095ce55f58 200 in 212ms (compile: 156ms, render: 55ms)
+ GET /dashboard 200 in 45ms (compile: 4ms, render: 41ms)
+ GET /settings 200 in 55ms (compile: 5ms, render: 50ms)
+ GET /dashboard 200 in 56ms (compile: 7ms, render: 49ms)
+ GET /resumes/e1600b83-a929-4283-a88c-2537a75f3224 200 in 586ms (compile: 278ms, render: 308ms)
+ GET /tailor 200 in 63ms (compile: 16ms, render: 48ms)
+ GET /resumes/2b831ec1-65ec-4db3-8896-5ba1da10fa50 200 in 516ms (compile: 275ms, render: 241ms)
+○ Compiling /print/resumes/[id] ...
+ GET /print/resumes/2b831ec1-65ec-4db3-8896-5ba1da10fa50?template=swiss-single&pageSize=A4&marginTop=10&marginBottom=10&marginLeft=10&marginRight=10&sectionSpacing=3&itemSpacing=2&lineHeight=3&fontSize=3&headerScale=3&headerFont=serif&bodyFont=sans-serif&compactMode=false&showContactIcons=false&accentColor=blue&lang=en 200 in 7.5s (compile: 5.0s, render: 2.5s)
+ GET /dashboard 200 in 658ms (compile: 279ms, render: 379ms)
+ GET /resumes/2b831ec1-65ec-4db3-8896-5ba1da10fa50 200 in 328ms (compile: 232ms, render: 95ms)
+ GET /dashboard 200 in 43ms (compile: 8ms, render: 35ms)
+ GET /resumes/e1600b83-a929-4283-a88c-2537a75f3224 200 in 317ms (compile: 186ms, render: 131ms)
+ GET /tailor 200 in 60ms (compile: 20ms, render: 41ms)
+ GET /resumes/cb02c913-9859-4425-844b-25b69daab7c4 200 in 395ms (compile: 245ms, render: 150ms)
+ GET /builder?id=cb02c913-9859-4425-844b-25b69daab7c4 200 in 74ms (compile: 21ms, render: 53ms)
+[?25h

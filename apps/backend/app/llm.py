@@ -8,7 +8,7 @@ from typing import Any
 import litellm
 from pydantic import BaseModel
 
-from app.config import settings
+from app.config import _get_llm_api_key_with_fallback, settings
 
 # LLM timeout configuration (seconds) - base values
 LLM_TIMEOUT_HEALTH_CHECK = 30
@@ -232,13 +232,14 @@ def get_llm_config() -> LLMConfig:
     """Get current LLM configuration.
 
     Priority: config.json file > environment variables/settings
+    For API key, use environment variables with fallback to config file
     """
     stored = _load_stored_config()
 
     return LLMConfig(
         provider=stored.get("provider", settings.llm_provider),
         model=stored.get("model", settings.llm_model),
-        api_key=stored.get("api_key", settings.llm_api_key),
+        api_key=stored.get("api_key", _get_llm_api_key_with_fallback()),
         api_base=stored.get("api_base", settings.llm_api_base),
     )
 
@@ -254,6 +255,7 @@ def get_model_name(config: LLMConfig) -> str:
         "openai": "",  # OpenAI models don't need prefix
         "anthropic": "anthropic/",
         "openrouter": "openrouter/",
+        "cerebras": "cerebras/",
         "gemini": "gemini/",
         "deepseek": "deepseek/",
         "ollama": "ollama/",
@@ -269,7 +271,14 @@ def get_model_name(config: LLMConfig) -> str:
         return f"openrouter/{config.model}"
 
     # For other providers, don't add prefix if model already has a known prefix
-    known_prefixes = ["openrouter/", "anthropic/", "gemini/", "deepseek/", "ollama/"]
+    known_prefixes = [
+        "openrouter/",
+        "anthropic/",
+        "gemini/",
+        "deepseek/",
+        "ollama/",
+        "cerebras/",
+    ]
     if any(config.model.startswith(p) for p in known_prefixes):
         return config.model
 
@@ -452,7 +461,7 @@ async def complete(
 def _supports_json_mode(provider: str, model: str) -> bool:
     """Check if the model supports JSON mode."""
     # Models that support response_format={"type": "json_object"}
-    json_mode_providers = ["openai", "anthropic", "gemini", "deepseek"]
+    json_mode_providers = ["openai", "anthropic", "gemini", "deepseek", "cerebras"]
     if provider in json_mode_providers:
         return True
     # LLM-004: OpenRouter models - use explicit allowlist instead of substring matching

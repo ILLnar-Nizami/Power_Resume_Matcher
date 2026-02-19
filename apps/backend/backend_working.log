@@ -1,0 +1,289 @@
+INFO:     Will watch for changes in these directories: ['/home/illnar/Projects/Resume-Matcher/apps/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8890 (Press CTRL+C to quit)
+INFO:     Started reloader process [3244522] using StatReload
+INFO:     Started server process [3244526]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:36734 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57790 - "GET /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49738 - "GET /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49746 - "GET /api/v1/config/features HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49760 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49768 - "GET /api/v1/config/language HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49770 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43164 - "OPTIONS /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43178 - "PUT /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+WARNING:root:LLM config saved but health check failed
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:43178 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43164 - "OPTIONS /api/v1/config/llm-test HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:43178 - "POST /api/v1/config/llm-test HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'app/config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3244526]
+INFO:     Started server process [3257794]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:57538 - "GET /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57544 - "GET /api/v1/config/features HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57556 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57566 - "GET /api/v1/config/language HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:57568 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42046 - "PUT /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:42046 - "GET /api/v1/status HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+WARNING:root:LLM config saved but health check failed
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:42046 - "POST /api/v1/config/llm-test HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:42060 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42554 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42570 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57948 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+ERROR:app.routers.resumes:Document parsing failed: File conversion failed after 1 attempts:
+ - DocxConverter threw MissingDependencyException with message: DocxConverter recognized the input as a potential .docx file, but the dependencies needed to read .docx files have not been installed. To resolve this error, include the optional dependency [docx] or [all] when installing MarkItDown. For example:
+
+* pip install markitdown[docx]
+* pip install markitdown[all]
+* pip install markitdown[docx, ...]
+* etc.
+
+INFO:     127.0.0.1:57948 - "POST /api/v1/resumes/upload HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:43212 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43212 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+WARNING:root:JSON extraction found unbalanced braces (depth=2), possible truncation
+ERROR:root:Could not extract JSON from response format. Content preview: {
+  "personalInfo": {
+    "name": "Ilnar Nizametdinov",
+    "title": "Software / Systems / Backend Developer / Tech & Engineering Professional",
+    "email": "nizametdinov@gmail.com",
+    "phone": "+3
+WARNING:root:LLM call failed (attempt 1): No JSON found in response: {
+  "personalInfo": {
+    "name": "Ilnar Nizametdinov",
+    "title": "Software / Systems / Backend Developer / Tech & Engineering Professional",
+    "email": "nizametdinov@gmail.com",
+    "phone": "+3
+WARNING:root:JSON extraction found unbalanced braces (depth=2), possible truncation
+ERROR:root:Could not extract JSON from response format. Content preview: {
+  "personalInfo": {
+    "name": "Ilnar Nizametdinov",
+    "title": "Software / Systems / Backend Developer / Tech & Engineering Professional",
+    "email": "nizametdinov@gmail.com",
+    "phone": "+3
+WARNING:root:LLM call failed (attempt 2): No JSON found in response: {
+  "personalInfo": {
+    "name": "Ilnar Nizametdinov",
+    "title": "Software / Systems / Backend Developer / Tech & Engineering Professional",
+    "email": "nizametdinov@gmail.com",
+    "phone": "+3
+WARNING:app.routers.resumes:Resume parsing to JSON failed for Ilnar_Nizametdinov_cv_16.12.25.pdf: 6 validation errors for ResumeData
+customSections.hobbies.items.0
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Coding', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.1
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Games', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.2
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Movies', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.3
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Sport', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.4
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Hiking', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.5
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Pets', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+INFO:     127.0.0.1:43202 - "POST /api/v1/resumes/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43202 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59412 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39026 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39038 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39040 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44932 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44932 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47872 - "OPTIONS /api/v1/jobs/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47872 - "POST /api/v1/jobs/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47872 - "OPTIONS /api/v1/resumes/improve/preview HTTP/1.1" 200 OK
+WARNING:root:Possible truncation detected: missing required section 'personalInfo'
+WARNING:root:Parsed JSON appears truncated, but proceeding with result
+INFO:     127.0.0.1:47884 - "POST /api/v1/resumes/improve/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40688 - "OPTIONS /api/v1/resumes/improve/confirm HTTP/1.1" 200 OK
+WARNING:app.routers.resumes:Skipping confirm payload validation; structured resume data unavailable.
+INFO:     127.0.0.1:40688 - "POST /api/v1/resumes/improve/confirm HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40688 - "GET /api/v1/resumes?resume_id=ba626227-4fa4-4093-976d-97d12796a450 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40690 - "GET /api/v1/resumes?resume_id=ba626227-4fa4-4093-976d-97d12796a450 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39218 - "GET /api/v1/resumes?resume_id=ba626227-4fa4-4093-976d-97d12796a450 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39224 - "GET /api/v1/resumes?resume_id=ba626227-4fa4-4093-976d-97d12796a450 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39224 - "GET /api/v1/resumes/ba626227-4fa4-4093-976d-97d12796a450/job-description HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46756 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46766 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46776 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46756 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46776 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46776 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46776 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46756 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46756 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46776 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46788 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46756 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46756 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46788 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33518 - "GET /api/v1/resumes?resume_id=ba626227-4fa4-4093-976d-97d12796a450 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33530 - "GET /api/v1/resumes?resume_id=ba626227-4fa4-4093-976d-97d12796a450 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37014 - "OPTIONS /api/v1/resumes/ba626227-4fa4-4093-976d-97d12796a450 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37014 - "DELETE /api/v1/resumes/ba626227-4fa4-4093-976d-97d12796a450 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55844 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55846 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55856 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55844 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55844 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55856 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41380 - "GET /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41396 - "GET /api/v1/config/features HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41380 - "GET /api/v1/config/features HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41400 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41412 - "GET /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41396 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:32774 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57832 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57840 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57850 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57832 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57850 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57850 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57850 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57832 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57832 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57850 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47474 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57832 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57832 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47474 - "GET /api/v1/resumes?resume_id=61f9f813-bbe2-4f45-9d2e-65095ce55f58 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47484 - "GET /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47486 - "GET /api/v1/config/features HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47484 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47502 - "GET /api/v1/config/llm-api-key HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47486 - "GET /api/v1/config/features HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47506 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47522 - "OPTIONS /api/v1/config/reset HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47530 - "POST /api/v1/config/reset HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:47530 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52266 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52270 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45356 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59592 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+WARNING:root:JSON extraction found unbalanced braces (depth=2), possible truncation
+ERROR:root:Could not extract JSON from response format. Content preview: {
+  "personalInfo": {
+    "name": "Ilnar Nizametdinov",
+    "title": "Software / Systems / Backend Developer / Tech & Engineering Professional",
+    "email": "nizametdinov@gmail.com",
+    "phone": "+3
+WARNING:root:LLM call failed (attempt 1): No JSON found in response: {
+  "personalInfo": {
+    "name": "Ilnar Nizametdinov",
+    "title": "Software / Systems / Backend Developer / Tech & Engineering Professional",
+    "email": "nizametdinov@gmail.com",
+    "phone": "+3
+WARNING:root:JSON extraction found unbalanced braces (depth=3), possible truncation
+ERROR:root:Could not extract JSON from response format. Content preview: {
+  "personalInfo": {
+    "name": "Ilnar Nizametdinov",
+    "title": "Software / Systems / Backend Developer / Tech & Engineering Professional",
+    "email": "nizametdinov@gmail.com",
+    "phone": "+3
+WARNING:root:LLM call failed (attempt 2): No JSON found in response: {
+  "personalInfo": {
+    "name": "Ilnar Nizametdinov",
+    "title": "Software / Systems / Backend Developer / Tech & Engineering Professional",
+    "email": "nizametdinov@gmail.com",
+    "phone": "+3
+WARNING:app.routers.resumes:Resume parsing to JSON failed for ilnar_nizametdinov_master_cv_01.02.26.pdf: 6 validation errors for ResumeData
+customSections.hobbies.items.0
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Coding', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.1
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Games', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.2
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Movies', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.3
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Sport', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.4
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Hiking', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+customSections.hobbies.items.5
+  Input should be a valid dictionary or instance of CustomSectionItem [type=model_type, input_value='Pets', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
+INFO:     127.0.0.1:59602 - "POST /api/v1/resumes/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59602 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59602 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48328 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48338 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48340 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59484 - "OPTIONS /api/v1/jobs/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59484 - "POST /api/v1/jobs/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59484 - "OPTIONS /api/v1/resumes/improve/preview HTTP/1.1" 200 OK
+WARNING:root:Possible truncation detected: missing required section 'personalInfo'
+WARNING:root:Parsed JSON appears truncated, but proceeding with result
+INFO:     127.0.0.1:59488 - "POST /api/v1/resumes/improve/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34182 - "OPTIONS /api/v1/resumes/improve/confirm HTTP/1.1" 200 OK
+WARNING:app.routers.resumes:Skipping confirm payload validation; structured resume data unavailable.
+INFO:     127.0.0.1:34182 - "POST /api/v1/resumes/improve/confirm HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34182 - "GET /api/v1/resumes?resume_id=2b831ec1-65ec-4db3-8896-5ba1da10fa50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34186 - "GET /api/v1/resumes?resume_id=2b831ec1-65ec-4db3-8896-5ba1da10fa50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45750 - "GET /api/v1/resumes?resume_id=2b831ec1-65ec-4db3-8896-5ba1da10fa50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45738 - "GET /api/v1/resumes/2b831ec1-65ec-4db3-8896-5ba1da10fa50/pdf?template=swiss-single&pageSize=A4&lang=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50530 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50534 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50530 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50536 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50530 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50536 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50536 - "GET /api/v1/resumes?resume_id=2b831ec1-65ec-4db3-8896-5ba1da10fa50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50530 - "GET /api/v1/resumes?resume_id=2b831ec1-65ec-4db3-8896-5ba1da10fa50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45244 - "OPTIONS /api/v1/resumes/2b831ec1-65ec-4db3-8896-5ba1da10fa50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45244 - "DELETE /api/v1/resumes/2b831ec1-65ec-4db3-8896-5ba1da10fa50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45244 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45246 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45262 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45244 - "GET /api/v1/resumes/list?include_master=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45244 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45262 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58356 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58372 - "GET /api/v1/resumes?resume_id=e1600b83-a929-4283-a88c-2537a75f3224 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58382 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58392 - "GET /api/v1/config/prompts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32940 - "POST /api/v1/jobs/upload HTTP/1.1" 200 OK
+WARNING:root:Possible truncation detected: missing required section 'personalInfo'
+WARNING:root:Parsed JSON appears truncated, but proceeding with result
+INFO:     127.0.0.1:32940 - "POST /api/v1/resumes/improve/preview HTTP/1.1" 200 OK
+WARNING:app.routers.resumes:Skipping confirm payload validation; structured resume data unavailable.
+INFO:     127.0.0.1:45352 - "POST /api/v1/resumes/improve/confirm HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45352 - "GET /api/v1/resumes?resume_id=cb02c913-9859-4425-844b-25b69daab7c4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45360 - "GET /api/v1/resumes?resume_id=cb02c913-9859-4425-844b-25b69daab7c4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45964 - "GET /api/v1/resumes?resume_id=cb02c913-9859-4425-844b-25b69daab7c4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45972 - "GET /api/v1/resumes?resume_id=cb02c913-9859-4425-844b-25b69daab7c4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45972 - "GET /api/v1/resumes/cb02c913-9859-4425-844b-25b69daab7c4/job-description HTTP/1.1" 200 OK
+WARNING:root:LLM health check returned empty content
+INFO:     127.0.0.1:40608 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+ERROR:app.main:Error closing PDF renderer: Browser.close: Connection closed while reading from the driver
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3257794]
+INFO:     Stopping reloader process [3244522]

@@ -1,7 +1,14 @@
 import { apiFetch } from './client';
 
 // Supported LLM providers
-export type LLMProvider = 'openai' | 'anthropic' | 'openrouter' | 'gemini' | 'deepseek' | 'ollama';
+export type LLMProvider =
+  | 'openai'
+  | 'anthropic'
+  | 'openrouter'
+  | 'gemini'
+  | 'deepseek'
+  | 'ollama'
+  | 'cerebras';
 
 export interface LLMConfig {
   provider: LLMProvider;
@@ -134,6 +141,7 @@ export const PROVIDER_INFO: Record<
   gemini: { name: 'Google Gemini', defaultModel: 'gemini-3-flash-preview', requiresKey: true },
   deepseek: { name: 'DeepSeek', defaultModel: 'deepseek-v3.2', requiresKey: true },
   ollama: { name: 'Ollama (Local)', defaultModel: 'gemma3:4b', requiresKey: false },
+  cerebras: { name: 'Cerebras', defaultModel: 'gpt-oss-120b', requiresKey: true },
 };
 
 // Feature configuration types
@@ -261,7 +269,13 @@ export async function updatePromptConfig(update: PromptConfigUpdate): Promise<Pr
 }
 
 // API Key Management types
-export type ApiKeyProvider = 'openai' | 'anthropic' | 'google' | 'openrouter' | 'deepseek';
+export type ApiKeyProvider =
+  | 'openai'
+  | 'anthropic'
+  | 'google'
+  | 'openrouter'
+  | 'deepseek'
+  | 'cerebras';
 
 export interface ApiKeyProviderStatus {
   provider: ApiKeyProvider;
@@ -277,6 +291,7 @@ export interface ApiKeysUpdateRequest {
   openai?: string;
   anthropic?: string;
   google?: string;
+  cerebras?: string;
   openrouter?: string;
   deepseek?: string;
 }
@@ -294,6 +309,7 @@ export const API_KEY_PROVIDER_INFO: Record<ApiKeyProvider, { name: string; descr
     google: { name: 'Google', description: 'Gemini 1.5, Gemini 2, etc.' },
     openrouter: { name: 'OpenRouter', description: 'Access multiple providers' },
     deepseek: { name: 'DeepSeek', description: 'DeepSeek chat models' },
+    cerebras: { name: 'Cerebras', description: 'Cerebras AI models' },
   };
 
 // Fetch API key status for all providers
