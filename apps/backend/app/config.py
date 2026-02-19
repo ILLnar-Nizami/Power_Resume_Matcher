@@ -1,6 +1,7 @@
 """Application configuration using pydantic-settings."""
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Literal
 
@@ -176,6 +177,7 @@ class Settings(BaseSettings):
     database_url: str = (
         "postgresql+asyncpg://postgres:postgres@localhost:5432/resume_matcher"
     )
+    database_url: str = os.getenv("DATABASE_URL") or ""
     redis_url: str = "redis://localhost:6379/0"
 
     # Paths
