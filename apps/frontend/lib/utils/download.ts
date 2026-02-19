@@ -1,10 +1,12 @@
 export function downloadBlobAsFile(blob: Blob, filename: string): void {
+  console.log('[downloadBlobAsFile] Received filename:', filename);
   if (typeof document === 'undefined') return;
   if (!document.body) return;
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
+  console.log('[downloadBlobAsFile] Setting link.download to:', filename);
   link.style.display = 'none';
   document.body.appendChild(link);
   link.click();

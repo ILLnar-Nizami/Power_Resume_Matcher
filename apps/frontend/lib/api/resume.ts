@@ -4,6 +4,15 @@ import { type TemplateSettings } from '@/lib/types/template-settings';
 import { type Locale } from '@/i18n/config';
 import { API_BASE, apiPost, apiPatch, apiDelete, apiFetch } from './client';
 
+function extractFilenameFromHeaders(headers: Headers): string | null {
+  const disposition = headers.get('content-disposition');
+  console.log('[extractFilenameFromHeaders] content-disposition:', disposition);
+  if (!disposition) return null;
+  const match = disposition.match(/filename="?([^";\n]+)"?/);
+  console.log('[extractFilenameFromHeaders] match:', match);
+  return match ? match[1] : null;
+}
+
 // Matches backend schemas/models.py ResumeData
 interface ProcessedResume {
   personalInfo?: {
@@ -137,11 +146,15 @@ async function postImprove(
 /** Uploads job descriptions and returns a job_id */
 export async function uploadJobDescriptions(
   descriptions: string[],
-  resumeId: string
+  resumeId: string,
+  companyName?: string,
+  role?: string
 ): Promise<string> {
   const res = await apiPost('/jobs/upload', {
     job_descriptions: descriptions,
     resume_id: resumeId,
+    company_name: companyName || null,
+    role: role || null,
   });
   if (!res.ok) throw new Error(`Upload failed with status ${res.status}`);
   const data = await res.json();
@@ -255,14 +268,32 @@ export async function downloadResumePdf(
   resumeId: string,
   settings?: TemplateSettings,
   locale?: Locale
-): Promise<Blob> {
+): Promise<{ blob: Blob; filename: string }> {
   const url = getResumePdfUrl(resumeId, settings, locale);
+  console.log('[DOWNLOAD] Starting resume PDF download:', url);
   const res = await apiFetch(url);
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Failed to download resume (status ${res.status}): ${text}`);
   }
-  return await res.blob();
+  
+  // Log all headers for debugging
+  console.log('[DOWNLOAD] All response headers:');
+  res.headers.forEach((val, key) => console.log(`  ${key}: ${val}`));
+  
+  const blob = await res.blob();
+  const disposition = res.headers.get('content-disposition');
+  console.log('[DOWNLOAD] Content-Disposition raw:', disposition);
+  
+  let filename: string;
+  if (disposition) {
+    const match = disposition.match(/filename="?([^";\n]+)"?/);
+    filename = match ? match[1] : `resume_${resumeId}.pdf`;
+  } else {
+    filename = `resume_${resumeId}.pdf`;
+  }
+  console.log('[DOWNLOAD] Final filename:', filename);
+  return { blob, filename };
 }
 
 /** Deletes a resume by ID */
@@ -321,14 +352,19 @@ export async function downloadCoverLetterPdf(
   resumeId: string,
   pageSize: 'A4' | 'LETTER' = 'A4',
   locale?: Locale
-): Promise<Blob> {
+): Promise<{ blob: Blob; filename: string }> {
   const url = getCoverLetterPdfUrl(resumeId, pageSize, locale);
+  console.log('[DOWNLOAD] Starting cover letter PDF download:', url);
   const res = await apiFetch(url);
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Failed to download cover letter (status ${res.status}): ${text}`);
   }
-  return await res.blob();
+  const blob = await res.blob();
+  const filename = extractFilenameFromHeaders(res.headers) || `cover_letter_${resumeId}.pdf`;
+  console.log('[DOWNLOAD] Cover letter PDF headers:', Object.fromEntries(res.headers.entries()));
+  console.log('[DOWNLOAD] Cover letter PDF filename:', filename);
+  return { blob, filename };
 }
 
 /** Generates a cover letter on-demand for a tailored resume */
@@ -371,6 +407,38 @@ export async function fetchJobDescription(
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Failed to fetch job description (status ${res.status}): ${text}`);
+  }
+  return res.json();
+}
+
+/** Creates a job description entry via the dedicated tailor endpoint */
+export async function createTailorJob(
+  jobDescription: string,
+  companyName?: string,
+  role?: string,
+  resumeId?: string
+): Promise<{ job_id: string; company_name: string | null; role: string | null }> {
+  const res = await apiPost('/tailor', {
+    job_description: jobDescription,
+    company_name: companyName || null,
+    role: role || null,
+    resume_id: resumeId || null,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Failed to create tailor job (status ${res.status}): ${text}`);
+  }
+  return res.json();
+}
+
+/** Gets a job description by ID from the tailor endpoint */
+export async function getTailorJob(
+  jobId: string
+): Promise<{ job_id: string; company_name: string | null; role: string | null }> {
+  const res = await apiFetch(`/tailor/${encodeURIComponent(jobId)}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Failed to get tailor job (status ${res.status}): ${text}`);
   }
   return res.json();
 }
