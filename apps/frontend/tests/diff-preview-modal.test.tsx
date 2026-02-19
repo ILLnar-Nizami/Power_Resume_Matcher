@@ -51,7 +51,7 @@ describe('DiffPreviewModal', () => {
   });
 
   it('shows warning banner and renders high-risk icon only for added high changes', () => {
-    const { container } = render(
+    render(
       <DiffPreviewModal
         isOpen
         onClose={vi.fn()}
@@ -63,7 +63,9 @@ describe('DiffPreviewModal', () => {
     );
 
     expect(screen.getByText('tailor.diffModal.warningTitle', { exact: false })).toBeInTheDocument();
-    const alertIcons = container.querySelectorAll('.lucide-triangle-alert');
+    
+    // Dialog uses createPortal, so query from document.body
+    const alertIcons = document.body.querySelectorAll('.lucide-triangle-alert');
     expect(alertIcons.length).toBe(2);
   });
 

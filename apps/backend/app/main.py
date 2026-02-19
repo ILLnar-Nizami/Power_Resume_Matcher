@@ -77,7 +77,8 @@ default_origins = [
     "http://127.0.0.1:3000",
 ]
 
-cors_env = os.environ.get("CORS_ORIGINS_LIST", "")
+# Use settings for CORS origins
+cors_env = settings.cors_origins_list
 if cors_env:
     cors_list = [o.strip() for o in cors_env.split(",") if o.strip()]
 else:

@@ -1,5 +1,6 @@
 """LiteLLM wrapper for multi-provider AI support."""
 
+import asyncio
 import json
 import logging
 import re
@@ -713,8 +714,6 @@ async def complete_json(
 
             # Check for rate limiting - add exponential backoff
             if "rate" in error_str and attempt < retries:
-                import asyncio
-
                 wait_time = (2**attempt) * 2  # 2, 4, 6 seconds
                 logging.warning(f"Rate limited, waiting {wait_time}s before retry...")
                 await asyncio.sleep(wait_time)
