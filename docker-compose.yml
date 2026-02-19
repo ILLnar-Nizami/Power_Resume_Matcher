@@ -20,8 +20,8 @@ services:
       - FRONTEND_PORT=${FRONTEND_PORT:-3333}
       - BACKEND_PORT=${BACKEND_PORT:-8888}
       - FRONTEND_BASE_URL=http://localhost:${FRONTEND_PORT:-3333}
-      - CORS_ORIGINS_LIST=http://localhost:3333,http://127.0.0.1:3333,http://localhost:8888,http://127.0.0.1:8888
-      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/resume_matcher}
+      - CORS_ORIGINS_LIST=${CORS_ORIGINS_LIST:-http://localhost:3333,http://127.0.0.1:3333,http://localhost:8888,http://127.0.0.1:8888}
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - LLM_PROVIDER=${LLM_PROVIDER:-cerebras}
       - LLM_MODEL=${LLM_MODEL:-gpt-oss-120b}
@@ -47,8 +47,8 @@ services:
     image: postgres:16-alpine
     container_name: resume-matcher-db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-resume_matcher}
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
