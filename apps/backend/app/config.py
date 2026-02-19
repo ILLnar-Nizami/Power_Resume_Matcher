@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from dotenv import load_dotenv
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Load environment variables from .env file
@@ -167,16 +167,24 @@ class Settings(BaseSettings):
             return "openai"
         return v
 
+    @model_validator(mode="after")
+    def validate_required_config(self) -> "Settings":
+        """Validate that required configuration values are set."""
+        if not self.database_url:
+            raise ValueError(
+                "DATABASE_URL environment variable is required. "
+                "Example: postgresql+asyncpg://user:password@localhost:5432/dbname"
+            )
+        return self
+
     # Server Configuration
     host: str = "0.0.0.0"
-    port: int = 8888
-    frontend_base_url: str = "http://localhost:3333"
+    port: int = 8000
+    frontend_base_url: str = "http://localhost:3000"
 
-    # Database Configuration
-    database_url: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/resume_matcher"
-    )
-    redis_url: str = "redis://localhost:6379/0"
+    # Database Configuration - MUST be set via environment variable
+    database_url: str = ""
+    redis_url: str = ""
 
     # Paths
     data_dir: Path = Path(__file__).parent.parent / "data"
