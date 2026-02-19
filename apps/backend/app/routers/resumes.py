@@ -5,11 +5,90 @@ import copy
 import hashlib
 import json
 import logging
+import re
 import unicodedata
 from collections.abc import Awaitable
+from datetime import datetime
 from pathlib import Path
 from typing import Any, NoReturn
 from uuid import uuid4
+
+
+def _sanitize_filename_part(text: str | None, max_length: int = 30) -> str:
+    if not text:
+        return ""
+    text = unicodedata.normalize("NFKD", text)
+    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"[\s_]+", "_", text.strip())
+    text = text[:max_length].strip("_")
+    return text
+
+
+def _parse_title_for_filename(title: str) -> tuple[str, str]:
+    """Parse title like 'Senior Engineer @ Google' into (role, company)."""
+    if " @" in title:
+        parts = title.split(" @ ", 1)
+        return parts[0].strip(), parts[1].strip()
+    elif "@" in title:
+        parts = title.split("@", 1)
+        return parts[0].strip(), parts[1].strip()
+    return title.strip(), ""
+
+
+def _extract_name_for_filename(personal_info: dict | None) -> str:
+    """Extract name in format J.Doe from personalInfo dict."""
+    if not personal_info:
+        return ""
+    name = personal_info.get("name", "")
+    if not name:
+        return ""
+    parts = name.strip().split()
+    if len(parts) >= 2:
+        first = parts[0]
+        last = parts[-1]
+        return f"{first[0].upper() if first else ''}.{last}" if first and last else ""
+    elif len(parts) == 1:
+        return parts[0]
+    return ""
+
+
+def _generate_pdf_filename(
+    title: str | None,
+    resume_id: str,
+    created_at: datetime | None = None,
+    personal_info: dict | None = None,
+    prefix: str = "cv",
+) -> str:
+    short_id = resume_id[:8]
+    date_str = ""
+    if created_at:
+        date_str = created_at.strftime("%d.%m.%y")
+
+    name_str = _extract_name_for_filename(personal_info)
+
+    if title:
+        role, company = _parse_title_for_filename(title)
+        clean_role = _sanitize_filename_part(role)
+        clean_company = _sanitize_filename_part(company)
+
+        parts = []
+        if name_str:
+            parts.append(name_str)
+        if clean_company:
+            parts.append(clean_company)
+        if clean_role:
+            parts.append(clean_role)
+        if date_str:
+            parts.append(date_str)
+
+        if parts:
+            return f"{prefix}_{'_'.join(parts)}.pdf".lower()
+
+    if name_str:
+        return f"{prefix}_{name_str}_{date_str}.pdf".lower()
+
+    return f"{prefix}_{short_id}.pdf".lower()
+
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
@@ -37,6 +116,7 @@ from app.schemas import (
     RawResume,
     UpdateCoverLetterRequest,
     UpdateOutreachMessageRequest,
+    UpdateTitleRequest,
     normalize_resume_data,
 )
 from app.services.parser import parse_document, parse_resume_to_json
@@ -50,6 +130,7 @@ from app.schemas.refinement import RefinementConfig
 from app.services.cover_letter import (
     generate_cover_letter,
     generate_outreach_message,
+    generate_resume_title,
 )
 from app.prompts import DEFAULT_IMPROVE_PROMPT_ID, IMPROVE_PROMPT_OPTIONS
 
@@ -242,55 +323,58 @@ async def _generate_auxiliary_messages(
     language: str,
     enable_cover_letter: bool,
     enable_outreach: bool,
-) -> tuple[str | None, str | None, list[str]]:
-    """Generate cover letter and outreach message.
+    company_name: str | None = None,
+    role: str | None = None,
+) -> tuple[str | None, str | None, str | None, list[str]]:
+    """Generate cover letter, outreach message, and resume title.
 
-    Returns (cover_letter, outreach_message, warnings).
+    Returns (cover_letter, outreach_message, title, warnings).
     """
     cover_letter = None
     outreach_message = None
+    title = None
     warnings: list[str] = []
     generation_tasks: list[Awaitable[str]] = []
+    task_labels: list[str] = []
+
+    # Title generation is always on (no feature flag)
+    # Pass company_name and role if available for direct title construction
+    generation_tasks.append(
+        generate_resume_title(job_content, language, company_name, role)
+    )
+    task_labels.append("title")
 
     if enable_cover_letter:
         generation_tasks.append(
             generate_cover_letter(improved_data, job_content, language)
         )
+        task_labels.append("cover_letter")
     if enable_outreach:
         generation_tasks.append(
             generate_outreach_message(improved_data, job_content, language)
         )
+        task_labels.append("outreach")
 
-    if generation_tasks:
-        results = await asyncio.gather(*generation_tasks, return_exceptions=True)
-        idx = 0
-        if enable_cover_letter:
-            result = results[idx]
-            if not isinstance(result, Exception):
+    results = await asyncio.gather(*generation_tasks, return_exceptions=True)
+    for label, result in zip(task_labels, results):
+        if isinstance(result, Exception):
+            logger.warning(
+                "%s generation failed: %s",
+                label,
+                result,
+                exc_info=result,
+            )
+            if label != "title":
+                warnings.append(f"{label.replace('_', ' ').title()} generation failed")
+        else:
+            if label == "title":
+                title = result
+            elif label == "cover_letter":
                 cover_letter = result
-            else:
-                # SVC-008: Include full traceback for debugging
-                logger.warning(
-                    "Cover letter generation failed: %s",
-                    result,
-                    exc_info=result,
-                )
-                warnings.append("Cover letter generation failed")
-            idx += 1
-        if enable_outreach:
-            result = results[idx]
-            if not isinstance(result, Exception):
+            elif label == "outreach":
                 outreach_message = result
-            else:
-                # SVC-008: Include full traceback for debugging
-                logger.warning(
-                    "Outreach message generation failed: %s",
-                    result,
-                    exc_info=result,
-                )
-                warnings.append("Outreach message generation failed")
 
-    return cover_letter, outreach_message, warnings
+    return cover_letter, outreach_message, title, warnings
 
 
 router = APIRouter(prefix="/resumes", tags=["Resumes"])
@@ -299,22 +383,30 @@ ALLOWED_TYPES = {
     "application/pdf",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain",
+    "text/markdown",
+    "text/x-markdown",
 }
+ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt", ".md", ".markdown"}
 MAX_FILE_SIZE = 4 * 1024 * 1024  # 4MB
 
 
 @router.post("/upload", response_model=ResumeUploadResponse)
 async def upload_resume(file: UploadFile = File(...)) -> ResumeUploadResponse:
-    """Upload and process a resume file (PDF/DOCX).
+    """Upload and process a resume file (PDF/DOC/DOCX/TXT/MD).
 
     Converts the file to Markdown and stores it in the database.
     Optionally parses to structured JSON if LLM is configured.
     """
-    # Validate file type
-    if file.content_type not in ALLOWED_TYPES:
+    # Validate file type by extension
+    file_ext = None
+    if file.filename:
+        file_ext = Path(file.filename).suffix.lower()
+
+    if file_ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid file type: {file.content_type}. Allowed: PDF, DOC, DOCX",
+            detail=f"Invalid file type. Allowed: PDF, DOC, DOCX, TXT, MD",
         )
 
     # Read and validate size
@@ -350,7 +442,22 @@ async def upload_resume(file: UploadFile = File(...)) -> ResumeUploadResponse:
     # Try to parse to structured JSON (optional, may fail if LLM not configured)
     try:
         processed_data = await parse_resume_to_json(markdown_content)
-        db.update_resume(
+
+        # Fix string hobbies to objects if needed
+        if processed_data and "customSections" in processed_data:
+            custom = processed_data.get("customSections", {})
+            if "hobbies" in custom:
+                hobbies = custom["hobbies"]
+                if "items" in hobbies and isinstance(hobbies["items"], list):
+                    fixed_items = []
+                    for item in hobbies["items"]:
+                        if isinstance(item, str):
+                            fixed_items.append({"title": item})
+                        elif isinstance(item, dict):
+                            fixed_items.append(item)
+                    hobbies["items"] = fixed_items
+
+        await db.update_resume(
             resume["resume_id"],
             {
                 "processed_data": processed_data,
@@ -360,9 +467,9 @@ async def upload_resume(file: UploadFile = File(...)) -> ResumeUploadResponse:
         resume["processed_data"] = processed_data
         resume["processing_status"] = "ready"
     except Exception as e:
-        # LLM parsing failed, update status to failed
+        # LLM parsing failed, but resume is still stored - mark as failed
         logger.warning(f"Resume parsing to JSON failed for {file.filename}: {e}")
-        db.update_resume(resume["resume_id"], {"processing_status": "failed"})
+        await db.update_resume(resume["resume_id"], {"processing_status": "failed"})
         resume["processing_status"] = "failed"
 
     # Return accurate status to client (API-001 fix)
@@ -387,7 +494,7 @@ async def get_resume(resume_id: str = Query(...)) -> ResumeFetchResponse:
     plus cover letter and outreach message if they exist.
     Applies lazy migration for section metadata if needed.
     """
-    resume = db.get_resume(resume_id)
+    resume = await db.get_resume(resume_id)
 
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
@@ -424,6 +531,7 @@ async def get_resume(resume_id: str = Query(...)) -> ResumeFetchResponse:
             cover_letter=resume.get("cover_letter"),
             outreach_message=resume.get("outreach_message"),
             parent_id=resume.get("parent_id"),
+            title=resume.get("title"),
         ),
     )
 
@@ -431,7 +539,7 @@ async def get_resume(resume_id: str = Query(...)) -> ResumeFetchResponse:
 @router.get("/list", response_model=ResumeListResponse)
 async def list_resumes(include_master: bool = Query(False)) -> ResumeListResponse:
     """List resumes, optionally including the master resume."""
-    resumes = db.list_resumes()
+    resumes = await db.list_resumes()
     if not include_master:
         resumes = [resume for resume in resumes if not resume.get("is_master", False)]
 
@@ -446,6 +554,7 @@ async def list_resumes(include_master: bool = Query(False)) -> ResumeListRespons
             processing_status=resume.get("processing_status", "pending"),
             created_at=resume.get("created_at", ""),
             updated_at=resume.get("updated_at", ""),
+            title=resume.get("title"),
         )
         for resume in resumes
     ]
@@ -461,11 +570,11 @@ async def improve_resume_preview_endpoint(
 
     The response includes resume_preview data but leaves resume_id null.
     """
-    resume = db.get_resume(request.resume_id)
+    resume = await db.get_resume(request.resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
-    job = db.get_job(request.job_id)
+    job = await db.get_job(request.job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job description not found")
 
@@ -484,7 +593,7 @@ async def improve_resume_preview_endpoint(
             stage = "persist_job_keywords"
             # Cache extracted keywords with a content hash for basic invalidation.
             try:
-                updated_job = db.update_job(
+                updated_job = await db.update_job(
                     request.job_id,
                     {"job_keywords": job_keywords, "job_keywords_hash": content_hash},
                 )
@@ -523,7 +632,7 @@ async def improve_resume_preview_endpoint(
         refinement_successful = False
         try:
             # Get master resume for alignment validation
-            master_resume = db.get_master_resume()
+            master_resume = await db.get_master_resume()
             master_data = (
                 _get_original_resume_data(master_resume)
                 if master_resume
@@ -581,7 +690,7 @@ async def improve_resume_preview_endpoint(
         preview_hashes[prompt_id] = preview_hash
         # NOTE: preview_hashes updates are last-write-wins; concurrent previews can race.
         try:
-            updated_job = db.update_job(
+            updated_job = await db.update_job(
                 request.job_id,
                 {
                     "preview_hash": preview_hash,
@@ -643,11 +752,11 @@ async def improve_resume_confirm_endpoint(
     request: ImproveResumeConfirmRequest,
 ) -> ImproveResumeResponse:
     """Confirm and persist a tailored resume."""
-    resume = db.get_resume(request.resume_id)
+    resume = await db.get_resume(request.resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
-    job = db.get_job(request.job_id)
+    job = await db.get_job(request.job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job description not found")
 
@@ -715,6 +824,7 @@ async def improve_resume_confirm_endpoint(
         (
             cover_letter,
             outreach_message,
+            title,
             aux_warnings,
         ) = await _generate_auxiliary_messages(
             improved_data,
@@ -722,11 +832,13 @@ async def improve_resume_confirm_endpoint(
             language,
             enable_cover_letter,
             enable_outreach,
+            job.get("company_name"),
+            job.get("role"),
         )
         response_warnings.extend(aux_warnings)
 
         stage = "create_resume"
-        tailored_resume = db.create_resume(
+        tailored_resume = await db.create_resume(
             content=improved_text,
             content_type="json",
             filename=f"tailored_{resume.get('filename', 'resume')}",
@@ -736,12 +848,13 @@ async def improve_resume_confirm_endpoint(
             processing_status="ready",
             cover_letter=cover_letter,
             outreach_message=outreach_message,
+            title=title,
         )
 
         improvements_payload = [imp.model_dump() for imp in request.improvements]
         stage = "create_improvement"
         request_id = str(uuid4())
-        db.create_improvement(
+        await db.create_improvement(
             original_resume_id=request.resume_id,
             tailored_resume_id=tailored_resume["resume_id"],
             job_id=request.job_id,
@@ -783,12 +896,12 @@ async def improve_resume_endpoint(
     Persists the tailored resume and returns a non-null resume_id.
     """
     # Fetch resume
-    resume = db.get_resume(request.resume_id)
+    resume = await db.get_resume(request.resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
     # Fetch job description
-    job = db.get_job(request.job_id)
+    job = await db.get_job(request.job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job description not found")
 
@@ -827,7 +940,7 @@ async def improve_resume_endpoint(
         refinement_successful = False
         try:
             # Get master resume for alignment validation
-            master_resume = db.get_master_resume()
+            master_resume = await db.get_master_resume()
             master_data = (
                 _get_original_resume_data(master_resume)
                 if master_resume
@@ -891,10 +1004,11 @@ async def improve_resume_endpoint(
         # Generate improvement suggestions
         improvements = generate_improvements(job_keywords)
 
-        # Generate cover letter and outreach message in parallel if enabled
+        # Generate cover letter, outreach message, and title in parallel if enabled
         (
             cover_letter,
             outreach_message,
+            title,
             aux_warnings,
         ) = await _generate_auxiliary_messages(
             improved_data,
@@ -902,11 +1016,13 @@ async def improve_resume_endpoint(
             language,
             enable_cover_letter,
             enable_outreach,
+            job.get("company_name"),
+            job.get("role"),
         )
         response_warnings.extend(aux_warnings)
 
-        # Store the tailored resume with cover letter and outreach message
-        tailored_resume = db.create_resume(
+        # Store the tailored resume with cover letter, outreach message, and title
+        tailored_resume = await db.create_resume(
             content=improved_text,
             content_type="json",
             filename=f"tailored_{resume.get('filename', 'resume')}",
@@ -916,11 +1032,12 @@ async def improve_resume_endpoint(
             processing_status="ready",
             cover_letter=cover_letter,
             outreach_message=outreach_message,
+            title=title,
         )
 
         # Store improvement record
         request_id = str(uuid4())
-        db.create_improvement(
+        await db.create_improvement(
             original_resume_id=request.resume_id,
             tailored_resume_id=tailored_resume["resume_id"],
             job_id=request.job_id,
@@ -968,14 +1085,14 @@ async def update_resume_endpoint(
     resume_id: str, resume_data: ResumeData
 ) -> ResumeFetchResponse:
     """Update a resume with new structured data."""
-    existing = db.get_resume(resume_id)
+    existing = await db.get_resume(resume_id)
     if not existing:
         raise HTTPException(status_code=404, detail="Resume not found")
 
     updated_data = resume_data.model_dump()
     updated_content = json.dumps(updated_data, indent=2)
 
-    updated = db.update_resume(
+    updated = await db.update_resume(
         resume_id,
         {
             "content": updated_content,
@@ -1050,7 +1167,7 @@ async def download_resume_pdf(
     - showContactIcons: show icons in contact info
     - lang: locale used for print page translations
     """
-    resume = db.get_resume(resume_id)
+    resume = await db.get_resume(resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
@@ -1091,17 +1208,85 @@ async def download_resume_pdf(
     except PDFRenderError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
-    headers = {"Content-Disposition": f'attachment; filename="resume_{resume_id}.pdf"'}
+    created_at = None
+    if resume.get("created_at"):
+        created_at = datetime.fromisoformat(resume["created_at"].replace("Z", "+00:00"))
+
+    personal_info = None
+    processed_data = resume.get("processed_data")
+    if processed_data and isinstance(processed_data, dict):
+        personal_info = processed_data.get("personalInfo")
+
+    filename = _generate_pdf_filename(
+        resume.get("title"), resume_id, created_at, personal_info
+    )
+    logger.info(
+        f"PDF filename generated: title={resume.get('title')}, personal_info={personal_info}, filename={filename}"
+    )
+
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
     return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
 
 
 @router.delete("/{resume_id}")
 async def delete_resume(resume_id: str) -> dict:
     """Delete a resume by ID."""
-    if not db.delete_resume(resume_id):
+    if not await db.delete_resume(resume_id):
         raise HTTPException(status_code=404, detail="Resume not found")
 
     return {"message": "Resume deleted successfully"}
+
+
+@router.post("/{resume_id}/retry-processing", response_model=ResumeUploadResponse)
+async def retry_processing(resume_id: str) -> ResumeUploadResponse:
+    """Retry AI processing for a failed resume.
+
+    Re-runs parse_resume_to_json() on the stored markdown content.
+    Only works for resumes with processing_status == "failed".
+    """
+    resume = await db.get_resume(resume_id)
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+
+    if resume.get("processing_status") != "failed":
+        raise HTTPException(
+            status_code=400,
+            detail="Only resumes with 'failed' processing status can be retried.",
+        )
+
+    markdown_content = resume.get("content", "")
+    if not markdown_content:
+        raise HTTPException(
+            status_code=400,
+            detail="Resume has no stored content to re-process.",
+        )
+
+    try:
+        processed_data = await parse_resume_to_json(markdown_content)
+        await db.update_resume(
+            resume_id,
+            {
+                "processed_data": processed_data,
+                "processing_status": "ready",
+            },
+        )
+        return ResumeUploadResponse(
+            message="Resume processing succeeded on retry",
+            request_id=str(uuid4()),
+            resume_id=resume_id,
+            processing_status="ready",
+            is_master=resume.get("is_master", False),
+        )
+    except Exception as e:
+        logger.warning(f"Retry processing failed for resume {resume_id}: {e}")
+        await db.update_resume(resume_id, {"processing_status": "failed"})
+        return ResumeUploadResponse(
+            message="Retry processing failed",
+            request_id=str(uuid4()),
+            resume_id=resume_id,
+            processing_status="failed",
+            is_master=resume.get("is_master", False),
+        )
 
 
 @router.patch("/{resume_id}/cover-letter")
@@ -1109,11 +1294,11 @@ async def update_cover_letter(
     resume_id: str, request: UpdateCoverLetterRequest
 ) -> dict:
     """Update the cover letter for a resume."""
-    resume = db.get_resume(resume_id)
+    resume = await db.get_resume(resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
-    db.update_resume(resume_id, {"cover_letter": request.content})
+    await db.update_resume(resume_id, {"cover_letter": request.content})
     return {"message": "Cover letter updated successfully"}
 
 
@@ -1122,12 +1307,24 @@ async def update_outreach_message(
     resume_id: str, request: UpdateOutreachMessageRequest
 ) -> dict:
     """Update the outreach message for a resume."""
-    resume = db.get_resume(resume_id)
+    resume = await db.get_resume(resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
-    db.update_resume(resume_id, {"outreach_message": request.content})
+    await db.update_resume(resume_id, {"outreach_message": request.content})
     return {"message": "Outreach message updated successfully"}
+
+
+@router.patch("/{resume_id}/title")
+async def update_title(resume_id: str, request: UpdateTitleRequest) -> dict:
+    """Update the title for a resume."""
+    resume = await db.get_resume(resume_id)
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+
+    title = request.title.strip()[:80]
+    await db.update_resume(resume_id, {"title": title})
+    return {"message": "Title updated successfully"}
 
 
 @router.post(
@@ -1142,7 +1339,7 @@ async def generate_cover_letter_endpoint(resume_id: str) -> GenerateContentRespo
     - The resume must have an associated job context in the improvements table
     """
     # Get the resume
-    resume = db.get_resume(resume_id)
+    resume = await db.get_resume(resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
@@ -1155,7 +1352,7 @@ async def generate_cover_letter_endpoint(resume_id: str) -> GenerateContentRespo
         )
 
     # Get improvement record to find the job_id
-    improvement = db.get_improvement_by_tailored_resume(resume_id)
+    improvement = await db.get_improvement_by_tailored_resume(resume_id)
     if not improvement:
         raise HTTPException(
             status_code=400,
@@ -1164,7 +1361,7 @@ async def generate_cover_letter_endpoint(resume_id: str) -> GenerateContentRespo
         )
 
     # Get the job description
-    job = db.get_job(improvement["job_id"])
+    job = await db.get_job(improvement["job_id"])
     if not job:
         raise HTTPException(
             status_code=404,
@@ -1195,7 +1392,7 @@ async def generate_cover_letter_endpoint(resume_id: str) -> GenerateContentRespo
         )
 
     # Save to resume record
-    db.update_resume(resume_id, {"cover_letter": cover_letter_content})
+    await db.update_resume(resume_id, {"cover_letter": cover_letter_content})
 
     return GenerateContentResponse(
         content=cover_letter_content,
@@ -1213,7 +1410,7 @@ async def generate_outreach_endpoint(resume_id: str) -> GenerateContentResponse:
     - The resume must have an associated job context in the improvements table
     """
     # Get the resume
-    resume = db.get_resume(resume_id)
+    resume = await db.get_resume(resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
@@ -1226,7 +1423,7 @@ async def generate_outreach_endpoint(resume_id: str) -> GenerateContentResponse:
         )
 
     # Get improvement record to find the job_id
-    improvement = db.get_improvement_by_tailored_resume(resume_id)
+    improvement = await db.get_improvement_by_tailored_resume(resume_id)
     if not improvement:
         raise HTTPException(
             status_code=400,
@@ -1235,7 +1432,7 @@ async def generate_outreach_endpoint(resume_id: str) -> GenerateContentResponse:
         )
 
     # Get the job description
-    job = db.get_job(improvement["job_id"])
+    job = await db.get_job(improvement["job_id"])
     if not job:
         raise HTTPException(
             status_code=404,
@@ -1266,7 +1463,7 @@ async def generate_outreach_endpoint(resume_id: str) -> GenerateContentResponse:
         )
 
     # Save to resume record
-    db.update_resume(resume_id, {"outreach_message": outreach_content})
+    await db.update_resume(resume_id, {"outreach_message": outreach_content})
 
     return GenerateContentResponse(
         content=outreach_content,
@@ -1282,7 +1479,7 @@ async def get_job_description_for_resume(resume_id: str) -> dict:
     to tailor a resume. Only works for tailored resumes (those with parent_id).
     """
     # Get the resume
-    resume = db.get_resume(resume_id)
+    resume = await db.get_resume(resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
@@ -1294,7 +1491,7 @@ async def get_job_description_for_resume(resume_id: str) -> dict:
         )
 
     # Get improvement record to find the job_id
-    improvement = db.get_improvement_by_tailored_resume(resume_id)
+    improvement = await db.get_improvement_by_tailored_resume(resume_id)
     if not improvement:
         raise HTTPException(
             status_code=400,
@@ -1303,7 +1500,7 @@ async def get_job_description_for_resume(resume_id: str) -> dict:
         )
 
     # Get the job description
-    job = db.get_job(improvement["job_id"])
+    job = await db.get_job(improvement["job_id"])
     if not job:
         raise HTTPException(
             status_code=404,
@@ -1329,7 +1526,7 @@ async def download_cover_letter_pdf(
         pageSize: A4 or LETTER
         lang: locale used for print page translations
     """
-    resume = db.get_resume(resume_id)
+    resume = await db.get_resume(resume_id)
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
@@ -1352,7 +1549,21 @@ async def download_cover_letter_pdf(
     except PDFRenderError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
-    headers = {
-        "Content-Disposition": f'attachment; filename="cover_letter_{resume_id}.pdf"'
-    }
+    created_at = None
+    if resume.get("created_at"):
+        created_at = datetime.fromisoformat(resume["created_at"].replace("Z", "+00:00"))
+
+    personal_info = None
+    processed_data = resume.get("processed_data")
+    if processed_data and isinstance(processed_data, dict):
+        personal_info = processed_data.get("personalInfo")
+
+    filename = _generate_pdf_filename(
+        resume.get("title"), resume_id, created_at, personal_info, prefix="cl"
+    )
+    logger.info(
+        f"Cover letter PDF filename: resume_id={resume_id}, title={resume.get('title')}, personal_info={personal_info}, filename={filename}"
+    )
+
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
     return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
