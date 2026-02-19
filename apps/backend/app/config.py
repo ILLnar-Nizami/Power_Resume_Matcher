@@ -128,6 +128,8 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    cors_origins_list: str = "http://localhost:3333,http://127.0.0.1:3333,http://localhost:3334,http://127.0.0.1:3334"
+
     # LLM Configuration
     llm_provider: Literal[
         "openai", "anthropic", "openrouter", "gemini", "deepseek", "ollama", "cerebras"
@@ -135,6 +137,27 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-oss-120b"
     llm_api_key: str = ""
     llm_api_base: str | None = None  # For Ollama or custom endpoints
+
+    @property
+    def default_api_base(self) -> str | None:
+        """Get provider-specific default API base URL."""
+        import os
+
+        # Check environment variable first
+        env_base = os.environ.get("LLM_API_BASE", "").strip()
+        if env_base:
+            return env_base
+
+        bases = {
+            "cerebras": "https://api.cerebras.ai",
+            "openai": None,
+            "anthropic": None,
+            "gemini": None,
+            "openrouter": "https://openrouter.ai",
+            "deepseek": None,
+            "ollama": "http://localhost:11434",
+        }
+        return bases.get(self.llm_provider)
 
     @field_validator("llm_provider", mode="before")
     @classmethod
@@ -147,21 +170,16 @@ class Settings(BaseSettings):
     # Server Configuration
     host: str = "0.0.0.0"
     port: int = 8888
-    frontend_base_url: str = "http://localhost:3334"
+    frontend_base_url: str = "http://localhost:3333"
 
-    # CORS Configuration
-    cors_origins: list[str] = [
-        "http://localhost:3334",
-        "http://127.0.0.1:3334",
-    ]
+    # Database Configuration
+    database_url: str = (
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/resume_matcher"
+    )
+    redis_url: str = "redis://localhost:6379/0"
 
     # Paths
     data_dir: Path = Path(__file__).parent.parent / "data"
-
-    @property
-    def db_path(self) -> Path:
-        """Path to TinyDB database file."""
-        return self.data_dir / "database.json"
 
     @property
     def config_path(self) -> Path:
