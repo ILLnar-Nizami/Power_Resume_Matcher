@@ -1,6 +1,7 @@
 """Application configuration using pydantic-settings."""
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Literal
 
