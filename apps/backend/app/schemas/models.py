@@ -410,6 +410,8 @@ class JobUploadRequest(BaseModel):
 
     job_descriptions: list[str]
     resume_id: str | None = None
+    company_name: str | None = None
+    role: str | None = None
 
 
 class JobUploadResponse(BaseModel):
@@ -666,6 +668,28 @@ class GenerateContentResponse(BaseModel):
 
     content: str
     message: str
+
+
+# Tailor Endpoint Models
+class TailorJobRequest(BaseModel):
+    """Request to create a job description for tailoring."""
+
+    job_description: str = Field(
+        ..., min_length=10, description="The job description text"
+    )
+    company_name: str | None = Field(default=None, description="Target company name")
+    role: str | None = Field(default=None, description="Target role/position")
+    resume_id: str | None = Field(default=None, description="Optional resume ID to use")
+
+
+class TailorJobResponse(BaseModel):
+    """Response after creating a job description."""
+
+    message: str
+    job_id: str
+    company_name: str | None
+    role: str | None
+    request: dict[str, Any]
 
 
 # Health/Status Models
