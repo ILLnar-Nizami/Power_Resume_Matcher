@@ -34,6 +34,9 @@ const ACCEPTED_FILE_TYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
   'application/msword', // .doc
+  'text/plain', // .txt
+  'text/markdown', // .md
+  'text/x-markdown', // .markdown
 ];
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 
