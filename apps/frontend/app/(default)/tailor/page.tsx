@@ -24,6 +24,8 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 export default function TailorPage() {
   const { t } = useTranslations();
   const [jobDescription, setJobDescription] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [role, setRole] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [masterResumeId, setMasterResumeId] = useState<string | null>(null);
@@ -146,11 +148,11 @@ export default function TailorPage() {
     return null;
   };
 
-  const runGenerate = async (resumeId: string, description: string) => {
+  const runGenerate = async (resumeId: string, description: string, company?: string, roleTitle?: string) => {
     try {
       // 1. Upload Job Description
       // The API expects an array of strings
-      const jobId = await uploadJobDescriptions([description], resumeId);
+      const jobId = await uploadJobDescriptions([description], resumeId, company || undefined, roleTitle || undefined);
       incrementJobs(); // Update cached counter
 
       // 2. Preview Resume
@@ -206,7 +208,7 @@ export default function TailorPage() {
     setIsLoading(true);
     setError(null);
     try {
-      await runGenerate(resumeId, trimmedDescription);
+      await runGenerate(resumeId, trimmedDescription, companyName || undefined, role || undefined);
     } finally {
       setIsLoading(false);
     }
@@ -289,7 +291,7 @@ export default function TailorPage() {
     setIsLoading(true);
     setError(null);
     try {
-      await runGenerate(resumeId, trimmedDescription);
+      await runGenerate(resumeId, trimmedDescription, companyName || undefined, role || undefined);
     } finally {
       setIsLoading(false);
     }
@@ -383,6 +385,35 @@ export default function TailorPage() {
             description={t('tailor.promptDescription')}
             disabled={isLoading || promptLoading}
           />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="font-mono text-xs font-bold uppercase tracking-wider text-gray-700 block mb-1">
+                {t('tailor.companyName') || 'Company Name'}
+              </label>
+              <input
+                type="text"
+                placeholder={t('tailor.companyPlaceholder') || 'e.g., Google'}
+                className="w-full font-mono text-sm bg-gray-50 border-2 border-black focus:ring-0 focus:border-blue-700 p-3 rounded-none"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <label className="font-mono text-xs font-bold uppercase tracking-wider text-gray-700 block mb-1">
+                {t('tailor.role') || 'Role / Position'}
+              </label>
+              <input
+                type="text"
+                placeholder={t('tailor.rolePlaceholder') || 'e.g., Senior Software Engineer'}
+                className="w-full font-mono text-sm bg-gray-50 border-2 border-black focus:ring-0 focus:border-blue-700 p-3 rounded-none"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+          </div>
 
           <div className="relative">
             <Textarea

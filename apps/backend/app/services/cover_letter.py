@@ -79,16 +79,30 @@ async def generate_outreach_message(
 async def generate_resume_title(
     job_description: str,
     language: str = "en",
+    company_name: str | None = None,
+    role: str | None = None,
 ) -> str:
     """Generate a short descriptive title from a job description.
 
     Args:
         job_description: Target job description text
         language: Output language code (en, es, zh, ja)
+        company_name: Optional company name to use directly
+        role: Optional role/position to use directly
 
     Returns:
         Generated title like "Senior Frontend Engineer @ Stripe"
     """
+    # If company_name and role are provided directly, use them
+    if company_name or role:
+        role_part = role.strip() if role else "Position"
+        company_part = company_name.strip() if company_name else ""
+
+        if company_part:
+            return f"{role_part} @ {company_part}"[:80]
+        return role_part[:80]
+
+    # Otherwise, extract from job description using LLM
     output_language = get_language_name(language)
 
     prompt = GENERATE_TITLE_PROMPT.format(

@@ -1,5 +1,6 @@
 """LiteLLM wrapper for multi-provider AI support."""
 
+import asyncio
 import json
 import logging
 import re
@@ -233,6 +234,7 @@ def get_llm_config() -> LLMConfig:
 
     Priority: config.json file > environment variables/settings
     For API key, use environment variables with fallback to config file
+    For api_base, use provider-specific default if not configured
     """
     stored = _load_stored_config()
 
@@ -240,7 +242,7 @@ def get_llm_config() -> LLMConfig:
         provider=stored.get("provider", settings.llm_provider),
         model=stored.get("model", settings.llm_model),
         api_key=stored.get("api_key", _get_llm_api_key_with_fallback()),
-        api_base=stored.get("api_base", settings.llm_api_base),
+        api_base=stored.get("api_base") or settings.default_api_base,
     )
 
 
@@ -341,7 +343,7 @@ async def check_llm_health(
         kwargs: dict[str, Any] = {
             "model": model_name,
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 16,
+            "max_tokens": 50,
             "api_key": config.api_key,
             "api_base": _normalize_api_base(config.provider, config.api_base),
             "timeout": LLM_TIMEOUT_HEALTH_CHECK,
@@ -535,6 +537,8 @@ def _calculate_timeout(
         "anthropic": 1.2,
         "openrouter": 1.5,  # More variable latency
         "ollama": 2.0,  # Local models can be slower
+        "cerebras": 1.5,  # Can be slower under load
+        "deepseek": 1.3,
     }
     provider_factor = provider_factors.get(provider, 1.0)
 
@@ -624,8 +628,8 @@ async def complete_json(
     prompt: str,
     system_prompt: str | None = None,
     config: LLMConfig | None = None,
-    max_tokens: int = 4096,
-    retries: int = 2,
+    max_tokens: int = 6144,  # Increased from 4096 for larger resumes
+    retries: int = 3,  # Increased from 2 for rate limiting
 ) -> dict[str, Any]:
     """Make a completion request expecting JSON response.
 
@@ -706,6 +710,15 @@ async def complete_json(
 
         except Exception as e:
             last_error = e
+            error_str = str(e).lower()
+
+            # Check for rate limiting - add exponential backoff
+            if "rate" in error_str and attempt < retries:
+                wait_time = (2**attempt) * 2  # 2, 4, 6 seconds
+                logging.warning(f"Rate limited, waiting {wait_time}s before retry...")
+                await asyncio.sleep(wait_time)
+                continue
+
             logging.warning(f"LLM call failed (attempt {attempt + 1}): {e}")
             if attempt < retries:
                 continue

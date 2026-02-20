@@ -45,6 +45,8 @@ from app.schemas.models import (
     SectionMeta,
     SectionType,
     StatusResponse,
+    TailorJobRequest,
+    TailorJobResponse,
     UpdateCoverLetterRequest,
     UpdateOutreachMessageRequest,
     UpdateTitleRequest,
@@ -98,4 +100,6 @@ __all__ = [
     "GenerateContentResponse",
     "HealthResponse",
     "StatusResponse",
+    "TailorJobRequest",
+    "TailorJobResponse",
 ]

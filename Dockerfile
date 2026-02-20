@@ -4,10 +4,9 @@
 # ============================================
 # Stage 1: Build Frontend
 # ============================================
-FROM node:22 AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 
 # Build argument for API URL (allows customization at build time)
-# Default matches the default BACKEND_PORT in docker-compose.yml
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000
 
 WORKDIR /app/frontend
@@ -22,16 +21,15 @@ RUN npm ci
 COPY apps/frontend/ ./
 
 # Set environment variable for production build
-# This gets baked into the JavaScript bundle at build time
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Build the frontend
 RUN npm run build
 
 # ============================================
-# Stage 2: Final Image
+# Stage 2: Final Image - Slim Debian
 # ============================================
-FROM python:3.13-slim
+FROM python:3.13-slim-bookworm
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -40,10 +38,14 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     NODE_ENV=production
 
-# Install system dependencies
+# Install system dependencies in single layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Node.js for frontend
     curl \
+    gnupg \
+    # Chromium for Playwright (system-installed, smaller than downloading)
+    chromium \
+    chromium-sandbox \
     # Playwright dependencies
     libnss3 \
     libnspr4 \
@@ -63,12 +65,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libatspi2.0-0 \
     libgtk-3-0 \
     # Cleanup
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Node.js 22.x
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Install uv for fast Python package management
+RUN pip install --no-cache-dir uv
+
+# Use system Chromium for Playwright
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 WORKDIR /app
 
@@ -80,11 +87,8 @@ COPY apps/backend/app /app/backend/app
 
 WORKDIR /app/backend
 
-# Install Python dependencies
-RUN pip install -e .
-
-# Install Playwright system dependencies (as root)
-RUN python -m playwright install-deps chromium 2>/dev/null || true
+# Install Python dependencies using uv (faster than pip)
+RUN uv pip install --system -e .
 
 # ============================================
 # Frontend Setup
@@ -104,7 +108,6 @@ RUN npm ci --omit=dev
 # Startup Script
 # ============================================
 COPY docker/start.sh /app/start.sh
-# Convert CRLF to LF (fixes Windows line ending issues) and make executable
 RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
 
 # ============================================
@@ -118,9 +121,6 @@ RUN useradd -m -u 1000 appuser \
 
 USER appuser
 
-# Install Playwright Chromium as appuser (so browsers are in correct location)
-RUN python -m playwright install chromium
-
 # Expose ports
 EXPOSE 3333 8888
 
@@ -130,9 +130,9 @@ VOLUME ["/app/backend/data"]
 # Set working directory
 WORKDIR /app
 
-# Health check (endpoint is at /api/v1/health per backend router configuration)
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+    CMD curl -f http://localhost:8888/api/v1/health || exit 1
 
 # Start the application
 CMD ["/app/start.sh"]
